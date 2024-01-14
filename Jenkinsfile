@@ -5,7 +5,7 @@ node {
     // Test Scratch Org Username
     def SFDC_USERNAME
 
-    // Path to SFDX CLI (configured via Custom Tools)
+    // Path to SF CLI (configured via Custom Tools)
     def toolbelt = tool 'toolbelt'
 
     echo sh(script: 'env|sort', returnStdout: true)
@@ -19,11 +19,11 @@ node {
         stage('Create Test Scratch Org') {
 
             // Authorizate with DevHub via JWT grant
-            rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:auth:jwt:grant --clientid ${env.CONNECTED_APP_CONSUMER_KEY_DH} --username ${env.HUB_ORG_DH} --jwtkeyfile ${jwt_key_file} --instanceurl ${env.SFDC_HOST_DH}"
+            rc = sh returnStatus: true, script: "${toolbelt}/sf org login jwt --client-id ${env.CONNECTED_APP_CONSUMER_KEY_DH} --username ${env.HUB_ORG_DH} --jwt-key-file ${jwt_key_file} --instance-url ${env.SFDC_HOST_DH}"
             if (rc != 0) { error 'hub org authorization failed' }
 
             // Create Scratch Org and determine login username X
-            rmsg = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:create --targetdevhubusername ${env.HUB_ORG_DH} --definitionfile config/project-scratch-def.json --json"
+            rmsg = sh returnStdout: true, script: "${toolbelt}/sf org create scratch --target-dev-hub ${env.HUB_ORG_DH} --definition-file config/project-scratch-def.json --json"
             def robj = new JsonSlurperClassic().parseText(rmsg)
             if (robj.status != 0) { error 'org creation failed: ' + robj.message }
             SFDC_USERNAME=robj.result.username
@@ -31,8 +31,8 @@ node {
 
         stage('Push To Test Scratch Org') {
 
-            // Push code via sfdx force:source:push
-            rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:source:push --targetusername ${SFDC_USERNAME}"
+            // Push code via sf force:source:push
+            rc = sh returnStatus: true, script: "${toolbelt}/sf project deploy start --target-org ${SFDC_USERNAME}"
             if (rc != 0) {
                 error 'push failed'
             }
@@ -44,7 +44,7 @@ node {
             sh "mkdir -p tests/${env.BUILD_NUMBER}"
 
             // Run Apex Tests
-            rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:apex:test:run --testlevel RunLocalTests --outputdir tests/${env.BUILD_NUMBER} --resultformat junit --targetusername ${SFDC_USERNAME}"
+            rc = sh returnStatus: true, script: "${toolbelt}/sf apex run test --test-level RunLocalTests --output-dir tests/${env.BUILD_NUMBER} --result-format junit --target-org ${SFDC_USERNAME}"
             
             // Run Lightning Web Component Tests
             env.NODEJS_HOME = "${tool 'node'}"
@@ -60,7 +60,7 @@ node {
         stage('Delete Test Org') {
 
             // Delete Test Scratch Org 
-            rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:org:delete --targetusername ${SFDC_USERNAME}"
+            rc = sh returnStatus: true, script: "${toolbelt}/sf org delete scratch --target-org ${SFDC_USERNAME}"
             if (rc != 0) {
                 error 'org delete failed'
             }            
