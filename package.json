@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/PacktPublishing/Salesforce-Platform-Enterprise-Architecture-4th-Editionn#README",
   "devDependencies": {
-    "@salesforce/lwc-jest": "^3.1.1"
+    "@salesforce/lwc-jest": "^3.1.0"
   },
   "dependencies": {
     "jest-junit": "^16.0.0"
