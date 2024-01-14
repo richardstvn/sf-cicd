@@ -14,6 +14,12 @@ node {
 
     withCredentials([file(credentialsId: env.JWT_CRED_ID_DH, variable: 'jwt_key_file')]) {
 
+      stege('todo') {
+        steps {
+          sh 'env | sort'
+        }
+      }
+
         stage('Create Test Scratch Org') {
 
             // Authorizate with DevHub via JWT grant
