@@ -8,17 +8,13 @@ node {
     // Path to SFDX CLI (configured via Custom Tools)
     def toolbelt = tool 'toolbelt'
 
+    echo sh(script: 'env|sort', returnStdout: true)
+
     stage('Checkout Source') {
         checkout scm
     }
 
     withCredentials([file(credentialsId: env.JWT_CRED_ID_DH, variable: 'jwt_key_file')]) {
-
-      stage('todo') {
-        steps {
-          sh 'env | sort'
-        }
-      }
 
         stage('Create Test Scratch Org') {
 
