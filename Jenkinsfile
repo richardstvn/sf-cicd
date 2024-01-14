@@ -14,7 +14,7 @@ node {
 
     withCredentials([file(credentialsId: env.JWT_CRED_ID_DH, variable: 'jwt_key_file')]) {
 
-      stege('todo') {
+      stage('todo') {
         steps {
           sh 'env | sort'
         }
